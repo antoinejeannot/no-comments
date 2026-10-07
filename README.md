@@ -18,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.8.0
+  rev: v0.9.0
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -47,10 +47,20 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 
 `# TODO: retry later` and `// FIXME: race` pass, but `# a TODO later` fails. An allowed comment ends its block, so the next comment line needs its own marker.
 
-## Diff range
+## GitHub CI
 
-Locally, the hook checks the staged diff. With `--from-ref` and `--to-ref`, it checks `from...to`. In CI, use the pull request target:
+Locally, the hook checks the staged diff. In a pull request, the `no-comments check` action checks the pull request diff. It uses the hook settings in your `.pre-commit-config.yaml`, and it caches the hook and its grammars.
 
-```sh
-pre-commit run no-comments --from-ref origin/$GITHUB_BASE_REF --to-ref HEAD
+```yaml
+on:
+  pull_request:
+
+jobs:
+  no-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: antoinejeannot/no-comments@v0.9.0
 ```
+
+Without the action, run `pre-commit run no-comments --from-ref HEAD^1 --to-ref HEAD` after a checkout with `fetch-depth: 2`. A `pre-commit run --all-files` step passes this hook, because nothing is staged in CI.
