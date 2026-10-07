@@ -41,7 +41,7 @@ def query(language: str) -> Query | None:
     patterns = [
         f"({kind})"
         for kind in sorted(kinds)
-        if kind.endswith("comment") and not kind.startswith("keyword")
+        if kind.lower().endswith("comment") and not kind.startswith("keyword")
     ]
     return Query(grammar, f"[{' '.join(patterns)}] @comment") if patterns else None
 
