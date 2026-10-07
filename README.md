@@ -28,6 +28,18 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 
 For a fixed, verifiable install, pin a commit instead of a tag: `pre-commit autoupdate --freeze` writes `rev: <sha>  # frozen: v0.10.2`. The dependencies have exact versions, and `tree-sitter-language-pack` checks the SHA-256 of the grammars it downloads.
 
+### Without pre-commit
+
+Run it with [uv](https://docs.astral.sh/uv/) from the Git tag:
+
+```sh
+uvx --from git+https://github.com/antoinejeannot/no-comments@v0.10.2 no-comments path/to/file.py
+```
+
+It checks the lines of the given files that changed since `HEAD`. To check a range, set `PRE_COMMIT_FROM_REF=origin/main PRE_COMMIT_TO_REF=HEAD`.
+
+Do not run `uvx no-comments`: an unrelated package has that name on PyPI.
+
 ## Rules
 
 - `args: [--code, XY00]` replaces the default code `NC00`.
