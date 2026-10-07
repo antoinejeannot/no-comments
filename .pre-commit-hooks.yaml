@@ -1,0 +1,6 @@
+- id: keep-comments
+  name: keep-comments
+  description: "Reject new comments unless they end with `keep: <CODE>`."
+  entry: keep-comments
+  language: python
+  files: \.(py|jsx?|tsx?)$

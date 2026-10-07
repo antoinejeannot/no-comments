@@ -1,0 +1,29 @@
+[project]
+name = "keep-comments"
+version = "0.1.0"
+description = "pre-commit hook that rejects new comments unless they end with `keep: <CODE>`."
+readme = "README.md"
+authors = [
+    { name = "Antoine Jeannot", email = "antoine.jeannot1002+github@gmail.com" }
+]
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    # 0.26.0 segfaults when nodes are kept: tree-sitter/py-tree-sitter#472
+    "tree-sitter>=0.25.2,!=0.26.0",
+    "tree-sitter-javascript>=0.25.0",
+    "tree-sitter-python>=0.25.0",
+    "tree-sitter-typescript>=0.23.2",
+]
+
+[project.scripts]
+keep-comments = "keep_comments:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
