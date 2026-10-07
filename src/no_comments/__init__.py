@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Reject new comments unless they end with `keep: <CODE>`."
     )
-    parser.add_argument("--code", default="KC00")
+    parser.add_argument("--code", default="NC00")
     parser.add_argument(
         "--allow", action="append", default=[DIRECTIVES], help="extra directive regex"
     )
