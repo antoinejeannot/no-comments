@@ -18,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.10.1
+  rev: v0.10.2
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -26,7 +26,7 @@ passes, keep: NC00 */
 
 Without `files:`, the hook checks every supported language, YAML and shell included. On its first run, the hook downloads the grammars (about 25 MB) into its pre-commit environment, so a cache of `~/.cache/pre-commit` keeps them.
 
-For a fixed, verifiable install, pin a commit instead of a tag: `pre-commit autoupdate --freeze` writes `rev: <sha>  # frozen: v0.10.1`. The dependencies have exact versions, and `tree-sitter-language-pack` checks the SHA-256 of the grammars it downloads.
+For a fixed, verifiable install, pin a commit instead of a tag: `pre-commit autoupdate --freeze` writes `rev: <sha>  # frozen: v0.10.2`. The dependencies have exact versions, and `tree-sitter-language-pack` checks the SHA-256 of the grammars it downloads.
 
 ## Rules
 
@@ -51,7 +51,7 @@ For a fixed, verifiable install, pin a commit instead of a tag: `pre-commit auto
 
 ## GitHub CI
 
-Locally, the hook checks the staged diff. In a pull request, the `no-comments check` action checks the pull request diff. It uses the hook settings in your `.pre-commit-config.yaml`, and it caches the hook and its grammars.
+Locally, the hook checks the changes since `HEAD`, so it also sees lines that earlier hooks moved, such as formatters. In a pull request, the `no-comments check` action checks the pull request diff. It uses the hook settings in your `.pre-commit-config.yaml`, and it caches the hook and its grammars.
 
 ```yaml
 on:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: antoinejeannot/no-comments@v0.10.1
+      - uses: antoinejeannot/no-comments@v0.10.2
 ```
 
-Without the action, run `pre-commit run no-comments --from-ref HEAD^1 --to-ref HEAD` after a checkout with `fetch-depth: 2`. A `pre-commit run --all-files` step passes this hook, because nothing is staged in CI.
+Without the action, run `pre-commit run no-comments --from-ref HEAD^1 --to-ref HEAD` after a checkout with `fetch-depth: 2`. A `pre-commit run --all-files` step passes this hook, because the files match `HEAD` in CI.

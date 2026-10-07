@@ -94,7 +94,7 @@ def test_main_reads_any_path_and_encoding(
     assert capsys.readouterr().out.startswith("café.py:1: ")
 
 
-def test_main_checks_only_staged_lines(
+def test_main_checks_only_changed_lines(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -107,10 +107,11 @@ def test_main_checks_only_staged_lines(
     subprocess.run([*git, "commit", "-qm", "init"], check=True)
     (tmp_path / "a.py").write_text("# old\nx = 1\n# new\n")
     subprocess.run([*git, "add", "."], check=True)
+    (tmp_path / "a.py").write_text("# old\nx = 1\n\n\n# new\n")
 
     assert main(["a.py", "--message", "no {code}", "--fix"]) == 1
-    assert capsys.readouterr().out == "a.py:3: no NC00\n"
-    assert (tmp_path / "a.py").read_text() == "# old\nx = 1\n"
+    assert capsys.readouterr().out == "a.py:5: no NC00\n"
+    assert (tmp_path / "a.py").read_text() == "# old\nx = 1\n\n\n"
 
 
 @pytest.mark.parametrize(

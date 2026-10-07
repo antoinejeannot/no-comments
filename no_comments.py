@@ -140,7 +140,14 @@ def strip(source: bytes, nodes: list[Node]) -> bytes:
 def added_rows(filenames: list[str]) -> dict[str, set[int]]:
     source = os.environ.get("PRE_COMMIT_FROM_REF", "")
     target = os.environ.get("PRE_COMMIT_TO_REF", "")
-    revisions = [f"{source}...{target}"] if source and target else ["--cached"]
+    # keep: diff the working tree, so lines moved by earlier hooks still match.
+    head = subprocess.run(
+        ["git", "rev-parse", "-q", "--verify", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    revisions = [f"{source}...{target}"] if source and target else [head or "--cached"]
     diff = subprocess.run(
         [
             "git",
