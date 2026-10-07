@@ -91,9 +91,9 @@ def violations(
         ),
         len(source),
     )
-    file_marker = re.compile(rf"keep-file: {re.escape(code)}\b")
+    file_marker = re.compile(rf"^\W*keep: {re.escape(code)}\W*$")
     if any(
-        file_marker.search(node.text.decode(errors="replace"))
+        file_marker.match(node.text.decode(errors="replace"))
         for node in nodes
         if node.start_byte < code_start
     ):

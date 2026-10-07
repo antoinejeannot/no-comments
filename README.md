@@ -18,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.9.1
+  rev: v0.10.0
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -33,7 +33,7 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 - `args: [--fix]` deletes the flagged comments. The hook still fails, so you can review the change.
 - The hook checks only added or changed lines. Existing comments stay.
 - Consecutive full-line comments are one block. `keep:` goes at the start of its first line, or `keep: <CODE>` at the end of its last line.
-- `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
+- A comment with only `keep: <CODE>`, for example `# keep: NC00`, before the first line of code skips the whole file.
 - Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:`, and encoding or magic comments like `# -*- coding: utf-8 -*-` (see `DIRECTIVES` in `no_comments.py`).
 
 ## Allow more comments
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: antoinejeannot/no-comments@v0.9.1
+      - uses: antoinejeannot/no-comments@v0.10.0
 ```
 
 Without the action, run `pre-commit run no-comments --from-ref HEAD^1 --to-ref HEAD` after a checkout with `fetch-depth: 2`. A `pre-commit run --all-files` step passes this hook, because nothing is staged in CI.
