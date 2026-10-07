@@ -60,7 +60,7 @@ def blocks(
 
 def violations(
     source: bytes, language: str, rows: set[int], code: str, allow: re.Pattern[str]
-) -> list[int]:
+) -> list[list[Node]]:
     marker = re.compile(rf"keep: {re.escape(code)}\W*$")
     tree = get_parser(language).parse(source)
     nodes = comments(tree)
@@ -80,13 +80,30 @@ def violations(
     ):
         return []
     return [
-        block[-1].start_point.row
+        block
         for block in blocks(source, nodes, allow)
         if rows.intersection(
             range(block[0].start_point.row, block[-1].end_point.row + 1)
         )
         and not marker.search(block[-1].text.decode())
     ]
+
+
+def strip(source: bytes, nodes: list[Node]) -> bytes:
+    for node in sorted(nodes, key=lambda node: node.start_byte, reverse=True):
+        start, end = node.start_byte, node.end_byte
+        while start and source[start - 1] in b" \t":
+            start -= 1
+        while end < len(source) and source[end] in b" \t\r":
+            end += 1
+        if start and source[start - 1] != ord("\n"):
+            end = node.end_byte
+        elif end == len(source) or source[end] == ord("\n"):
+            end += 1
+        else:
+            start = node.start_byte
+        source = source[:start] + source[end:]
+    return source
 
 
 def added_rows(filenames: list[str]) -> dict[str, set[int]]:
@@ -126,6 +143,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--code", default="NC00")
     parser.add_argument(
+        "--message",
+        default="comment not allowed, end it with 'keep: {code}' to keep it",
+    )
+    parser.add_argument("--fix", action="store_true", help="drop flagged comments")
+    parser.add_argument(
         "--allow", action="append", default=[DIRECTIVES], help="extra directive regex"
     )
     parser.add_argument("filenames", nargs="*")
@@ -138,11 +160,15 @@ def main(argv: list[str] | None = None) -> int:
     for filename in args.filenames:
         language = detect_language_from_path(filename)
         if language and (rows := added.get(filename)):
-            for row in violations(
-                Path(filename).read_bytes(), language, rows, args.code, allow
-            ):
-                print(
-                    f"{filename}:{row + 1}: comment must end with 'keep: {args.code}'"
-                )
+            path = Path(filename)
+            source = path.read_bytes()
+            flagged = violations(source, language, rows, args.code, allow)
+            for block in flagged:
+                row = block[-1].start_point.row + 1
+                print(f"{filename}:{row}: {args.message.format(code=args.code)}")
                 failed = 1
+            if args.fix and flagged:
+                path.write_bytes(
+                    strip(source, [node for block in flagged for node in block])
+                )
     return failed

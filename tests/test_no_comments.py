@@ -3,15 +3,18 @@ import subprocess
 
 import pytest
 
-from no_comments import DIRECTIVES, main, violations
+from no_comments import DIRECTIVES, main, strip, violations
 
 ALLOW = re.compile(DIRECTIVES)
 
 
+def flagged(language: str, source: str) -> list:
+    rows = set(range(source.count("\n") + 1))
+    return violations(source.encode(), language, rows, "NC00", ALLOW)
+
+
 def check(language: str, source: str) -> list[int]:
-    return violations(
-        source.encode(), language, set(range(source.count("\n") + 1)), "NC00", ALLOW
-    )
+    return [block[-1].start_point.row for block in flagged(language, source)]
 
 
 @pytest.mark.parametrize(
@@ -67,5 +70,20 @@ def test_main_checks_only_staged_lines(tmp_path, monkeypatch, capsys) -> None:
     (tmp_path / "a.py").write_text("# old\nx = 1\n# new\n")
     subprocess.run([*git, "add", "."], check=True)
 
-    assert main(["a.py"]) == 1
-    assert capsys.readouterr().out == "a.py:3: comment must end with 'keep: NC00'\n"
+    assert main(["a.py", "--message", "no {code}", "--fix"]) == 1
+    assert capsys.readouterr().out == "a.py:3: no NC00\n"
+    assert (tmp_path / "a.py").read_text() == "# old\nx = 1\n"
+
+
+@pytest.mark.parametrize(
+    ("language", "source", "expected"),
+    [
+        ("python", "x = 1\n    # a\n    # b\ny = 2  # c\n", "x = 1\ny = 2\n"),
+        ("python", "# kept, keep: NC00\nx = 1\n", "# kept, keep: NC00\nx = 1\n"),
+        ("typescript", "a(/* x */ 1);\n  /* y */ b();\n", "a( 1);\n  b();\n"),
+        ("typescript", "/* a\n b */\nc();\n// d", "c();\n"),
+    ],
+)
+def test_strip(language: str, source: str, expected: str) -> None:
+    nodes = [node for block in flagged(language, source) for node in block]
+    assert strip(source.encode(), nodes).decode() == expected

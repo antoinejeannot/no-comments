@@ -17,7 +17,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.5.0
+  rev: v0.6.0
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -28,6 +28,8 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 ## Rules
 
 - `args: [--code, XY00]` replaces the default code `NC00`.
+- `args: [--message, "..."]` replaces the error message. `{code}` is replaced by the code.
+- `args: [--fix]` deletes the flagged comments. The hook still fails, so you can review the change.
 - The hook checks only added or changed lines. Existing comments stay.
 - Consecutive full-line comments are one block. The marker goes on the last line.
 - `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
