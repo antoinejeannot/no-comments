@@ -182,8 +182,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "tree-sitter", specifier = ">=0.25.2,!=0.26.0" },
-    { name = "tree-sitter-language-pack", specifier = ">=1.21.0" },
+    { name = "tree-sitter", specifier = "==0.25.2" },
+    { name = "tree-sitter-language-pack", specifier = "==1.21.0" },
 ]
 
 [package.metadata.requires-dev]
