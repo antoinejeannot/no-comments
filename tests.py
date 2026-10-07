@@ -1,14 +1,16 @@
 import re
 import subprocess
+from pathlib import Path
 
 import pytest
+from tree_sitter import Node
 
 from no_comments import DIRECTIVES, main, strip, violations
 
 ALLOW = re.compile(DIRECTIVES)
 
 
-def flagged(language: str, source: str) -> list:
+def flagged(language: str, source: str) -> list[list[Node]]:
     rows = set(range(source.count("\n") + 1))
     return violations(source.encode(), language, rows, "NC00", ALLOW)
 
@@ -78,7 +80,11 @@ def test_violations(language: str, source: str, expected: list[int]) -> None:
     assert check(language, source) == expected
 
 
-def test_main_reads_any_path_and_encoding(tmp_path, monkeypatch, capsys) -> None:
+def test_main_reads_any_path_and_encoding(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     monkeypatch.chdir(tmp_path)
     subprocess.run(["git", "init", "-q"], check=True)
     (tmp_path / "café.py").write_bytes(b"# caf\xe9\nx = 1\n")
@@ -88,7 +94,11 @@ def test_main_reads_any_path_and_encoding(tmp_path, monkeypatch, capsys) -> None
     assert capsys.readouterr().out.startswith("café.py:1: ")
 
 
-def test_main_checks_only_staged_lines(tmp_path, monkeypatch, capsys) -> None:
+def test_main_checks_only_staged_lines(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     monkeypatch.chdir(tmp_path)
     git = ["git", "-c", "user.name=t", "-c", "user.email=t@t"]
     subprocess.run([*git, "init", "-q"], check=True)
