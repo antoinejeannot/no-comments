@@ -18,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.7.1
+  rev: v0.8.0
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -34,7 +34,7 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 - The hook checks only added or changed lines. Existing comments stay.
 - Consecutive full-line comments are one block. `keep:` goes at the start of its first line, or `keep: <CODE>` at the end of its last line.
 - `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
-- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed: shebang, `type:`, `noqa`, `pragma`, `fmt:`, `nosec`, `pyright:`, `mypy:`, `eslint`, `@ts-`, `/// <reference`, `prettier-ignore`. Add more with `--allow <regex>`.
+- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:` (see `DIRECTIVES` in `no_comments.py`). Add more with `--allow <regex>`, for example `args: [--allow, "TODO|FIXME"]`.
 
 ## Diff range
 

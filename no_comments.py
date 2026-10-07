@@ -18,8 +18,11 @@ from tree_sitter_language_pack import (
 
 DOCS = ("/**", "///", "//!")
 DIRECTIVES = (
-    r"!|type:|noqa\b|pragma\b|fmt:|nosec\b|pyright:|mypy:"
-    r"|eslint|@ts-|/ <reference|prettier-ignore"
+    r"!|type:|noqa\b|pragma\b|fmt:|nosec\b|pyright:|mypy:|ruff:|pylint:|flake8:"
+    r"|isort:|pyre-ignore|eslint|@ts-|/ <reference|prettier-ignore|biome-ignore"
+    r"|deno-lint-ignore|(istanbul|c8|v8) ignore|nolint\b|go:|NOLINT|clang-format"
+    r"|shellcheck\b|hadolint\b|yamllint\b|tfsec:|checkov:|trivy:|tflint-ignore"
+    r"|rubocop:|noinspection\b|checkstyle:"
 )
 PREFIX = re.compile(r"^(#|//|/\*)\s*")
 KEEP = re.compile(r"^\W*keep:")
