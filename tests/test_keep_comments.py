@@ -8,47 +8,53 @@ from keep_comments import DIRECTIVES, main, violations
 ALLOW = re.compile(DIRECTIVES)
 
 
-def check(suffix: str, source: str) -> list[int]:
+def check(language: str, source: str) -> list[int]:
     return violations(
-        source.encode(), suffix, set(range(source.count("\n") + 1)), "DH00", ALLOW
+        source.encode(), language, set(range(source.count("\n") + 1)), "DH00", ALLOW
     )
 
 
 @pytest.mark.parametrize(
-    ("suffix", "source", "expected"),
+    ("language", "source", "expected"),
     [
         (
-            ".py",
+            "python",
             "# This comment makes sense, keep: DH00\n# This comment should raise\nx = 1\n",
             [1],
         ),
-        (".py", "x = 1  # raise\n# kept\n# kept, keep: DH00\n", [0]),
+        ("python", "x = 1  # raise\n# kept\n# kept, keep: DH00\n", [0]),
         (
-            ".py",
+            "python",
             '#!/usr/bin/env python\n"""Docstring."""\nx = "# no"  # noqa: E501\n',
             [],
         ),
         (
-            ".ts",
+            "typescript",
             "// this comment makes sense, keep: DH00\n// this comment should raise\n",
             [1],
         ),
         (
-            ".ts",
+            "typescript",
             "/* this multiline comment\nshould not raise, keep: DH00 */\n/* raise\n*/\n",
             [2],
         ),
         (
-            ".tsx",
+            "tsx",
             '/** JSDoc */\nconst a = <a href="http://x" />  // @ts-expect-error\n',
             [],
         ),
-        (".js", "const r = /\\/\\//; const s = `${1}//no`;\n", []),
-        (".py", "def f():\n    # a\n    # b, keep: DH00\n    return 1\n" * 300, []),
+        ("javascript", "const r = /\\/\\//; const s = `${1}//no`;\n", []),
+        ("python", '"""Doc."""\n# keep-file: DH00\n# x\nimport os  # y\n', []),
+        ("python", "import os\n# keep-file: DH00\n", [1]),
+        ("typescript", "// keep-file: DH001\n// x\n", [1]),
+        ("rust", "/// Doc\n// x\n// y, keep: DH00\nfn f() {}\n", []),
+        ("sql", "-- x\nSELECT 1; -- y, keep: DH00\n", [0]),
+        ("html", "<!-- x, keep: DH00 -->\n<!-- y -->\n", [1]),
+        ("python", "def f():\n    # a\n    # b, keep: DH00\n    return 1\n" * 300, []),
     ],
 )
-def test_violations(suffix: str, source: str, expected: list[int]) -> None:
-    assert check(suffix, source) == expected
+def test_violations(language: str, source: str, expected: list[int]) -> None:
+    assert check(language, source) == expected
 
 
 def test_main_checks_only_staged_lines(tmp_path, monkeypatch, capsys) -> None:

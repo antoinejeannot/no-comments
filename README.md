@@ -1,6 +1,6 @@
 # keep-comments
 
-A [pre-commit](https://pre-commit.com) hook that rejects new comments in Python, JavaScript and TypeScript, unless they end with `keep: <CODE>`.
+A [pre-commit](https://pre-commit.com) hook that rejects new comments, unless they end with `keep: <CODE>`. It supports every language of [tree-sitter-language-pack](https://github.com/xberg-io/tree-sitter-language-pack) and skips other files.
 
 ```python
 # This comment explains a tricky choice, keep: DH00
@@ -17,17 +17,21 @@ passes, keep: DH00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/keep-comments
-  rev: v0.1.0
+  rev: v0.2.0
   hooks:
     - id: keep-comments
       args: [--code, DH00]
+      files: \.(py|jsx?|tsx?)$
 ```
+
+Without `files:`, the hook checks every supported language, YAML and shell included. The hook downloads each grammar the first time it is used and caches it.
 
 ## Rules
 
 - The hook checks only added or changed lines. Existing comments stay.
-- Consecutive full-line `#` or `//` comments are one block. The marker goes on the last line.
-- Docstrings, JSDoc (`/** */`) and tool directives are always allowed: shebang, `type:`, `noqa`, `pragma`, `fmt:`, `nosec`, `pyright:`, `mypy:`, `eslint`, `@ts-`, `/// <reference`, `prettier-ignore`. Add more with `--allow <regex>`.
+- Consecutive full-line comments are one block. The marker goes on the last line.
+- `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
+- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed: shebang, `type:`, `noqa`, `pragma`, `fmt:`, `nosec`, `pyright:`, `mypy:`, `eslint`, `@ts-`, `/// <reference`, `prettier-ignore`. Add more with `--allow <regex>`.
 
 ## Diff range
 

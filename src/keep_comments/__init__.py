@@ -5,24 +5,30 @@ import subprocess
 from collections import defaultdict
 from pathlib import Path
 
-import tree_sitter_javascript
-import tree_sitter_python
-import tree_sitter_typescript
-from tree_sitter import Language, Node, Parser, Query, QueryCursor
+from tree_sitter import Node, Tree
+from tree_sitter_language_pack import detect_language_from_path, get_parser
 
-LANGUAGES = {
-    ".py": tree_sitter_python.language(),
-    ".js": tree_sitter_javascript.language(),
-    ".jsx": tree_sitter_javascript.language(),
-    ".ts": tree_sitter_typescript.language_typescript(),
-    ".tsx": tree_sitter_typescript.language_tsx(),
-}
+DOCS = ("/**", "///", "//!")
 DIRECTIVES = (
     r"!|type:|noqa\b|pragma\b|fmt:|nosec\b|pyright:|mypy:"
     r"|eslint|@ts-|/ <reference|prettier-ignore"
 )
 PREFIX = re.compile(r"^(#|//|/\*)\s*")
 HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
+
+
+def comments(tree: Tree) -> list[Node]:
+    nodes = []
+    cursor = tree.walk()
+    while True:
+        # Grammars name them `comment`, `line_comment`, `block_comment`...
+        if "comment" in cursor.node.type:
+            nodes.append(cursor.node)
+        elif cursor.goto_first_child():
+            continue
+        while not cursor.goto_next_sibling():
+            if not cursor.goto_parent():
+                return nodes
 
 
 def blocks(
@@ -33,12 +39,12 @@ def blocks(
     previous = None
     for node in nodes:
         text = node.text.decode()
-        if text.startswith("/**") or allow.match(PREFIX.sub("", text)):
+        if text.startswith(DOCS) or allow.match(PREFIX.sub("", text)):
             previous = None
             continue
         row, column = node.start_point
-        alone = text.startswith(("#", "//")) and not lines[row][:column].strip()
-        if alone and previous and row == previous.end_point.row + 1:
+        alone = "\n" not in text.rstrip() and not lines[row][:column].strip()
+        if alone and previous and row == previous.start_point.row + 1:
             result[-1].append(node)
         else:
             result.append([node])
@@ -47,16 +53,26 @@ def blocks(
 
 
 def violations(
-    source: bytes, suffix: str, rows: set[int], code: str, allow: re.Pattern[str]
+    source: bytes, language: str, rows: set[int], code: str, allow: re.Pattern[str]
 ) -> list[int]:
-    marker = re.compile(rf"keep: {re.escape(code)}\s*(\*/)?$")
-    language = Language(LANGUAGES[suffix])
-    tree = Parser(language).parse(source)
-    query = QueryCursor(Query(language, "(comment) @comment"))
-    nodes = sorted(
-        query.captures(tree.root_node).get("comment", []),
-        key=lambda node: node.start_byte,
+    marker = re.compile(rf"keep: {re.escape(code)}\W*$")
+    tree = get_parser(language).parse(source)
+    nodes = comments(tree)
+    code_start = next(
+        (
+            node.start_byte
+            for node in tree.root_node.named_children
+            if "comment" not in node.type and node.type != "string"
+        ),
+        len(source),
     )
+    file_marker = re.compile(rf"keep-file: {re.escape(code)}\b")
+    if any(
+        file_marker.search(node.text.decode())
+        for node in nodes
+        if node.start_byte < code_start
+    ):
+        return []
     return [
         block[-1].start_point.row
         for block in blocks(source, nodes, allow)
@@ -112,10 +128,10 @@ def main(argv: list[str] | None = None) -> int:
     added = added_rows(args.filenames)
     failed = 0
     for filename in args.filenames:
-        if rows := added.get(filename):
-            path = Path(filename)
+        language = detect_language_from_path(filename)
+        if language and (rows := added.get(filename)):
             for row in violations(
-                path.read_bytes(), path.suffix, rows, args.code, allow
+                Path(filename).read_bytes(), language, rows, args.code, allow
             ):
                 print(
                     f"{filename}:{row + 1}: comment must end with 'keep: {args.code}'"
