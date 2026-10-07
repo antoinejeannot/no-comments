@@ -46,6 +46,8 @@ def check(language: str, source: str) -> list[int]:
             '/** JSDoc */\nconst a = <a href="http://x" />  // @ts-expect-error\n',
             [],
         ),
+        ("python", "# -*- coding: utf-8 -*-\nx = 1\n", []),
+        ("ruby", "# frozen_string_literal: true\nx = 1\n", []),
         ("python", "# ruff: noqa\nx = 1  # pylint: disable=C0103\n", []),
         (
             "javascript",
