@@ -10,10 +10,10 @@ runs:
     - name: Fetch the base commit
       shell: bash
       run: git rev-parse -q --verify HEAD^1 > /dev/null || git fetch -q --deepen=1
-    - uses: actions/cache@v6
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       with:
         path: ~/.cache/pre-commit
         key: no-comments-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
     - name: Check new comments
       shell: bash
-      run: pipx run pre-commit run no-comments --color=always --from-ref HEAD^1 --to-ref HEAD
+      run: pipx run pre-commit==4.5.0 run no-comments --color=always --from-ref HEAD^1 --to-ref HEAD
