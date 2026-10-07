@@ -3,7 +3,7 @@ import subprocess
 
 import pytest
 
-from keep_comments import DIRECTIVES, main, violations
+from no_comments import DIRECTIVES, main, violations
 
 ALLOW = re.compile(DIRECTIVES)
 

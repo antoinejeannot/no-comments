@@ -1,4 +1,4 @@
-# keep-comments
+# no-comments
 
 A [pre-commit](https://pre-commit.com) hook that rejects new comments, unless they end with `keep: KC00`. It supports every language of [tree-sitter-language-pack](https://github.com/xberg-io/tree-sitter-language-pack) and skips other files.
 
@@ -16,10 +16,10 @@ passes, keep: KC00 */
 ## Usage
 
 ```yaml
-- repo: https://github.com/antoinejeannot/keep-comments
-  rev: v0.3.0
+- repo: https://github.com/antoinejeannot/no-comments
+  rev: v0.4.0
   hooks:
-    - id: keep-comments
+    - id: no-comments
       files: \.(py|jsx?|tsx?)$
 ```
 
@@ -38,5 +38,5 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 Locally, the hook checks the staged diff. With `--from-ref` and `--to-ref`, it checks `from...to`. In CI, use the pull request target:
 
 ```sh
-pre-commit run keep-comments --from-ref origin/$GITHUB_BASE_REF --to-ref HEAD
+pre-commit run no-comments --from-ref origin/$GITHUB_BASE_REF --to-ref HEAD
 ```

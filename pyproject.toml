@@ -1,5 +1,5 @@
 [project]
-name = "keep-comments"
+name = "no-comments"
 version = "0.1.0"
 description = "pre-commit hook that rejects new comments unless they end with `keep: <CODE>`."
 readme = "README.md"
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-keep-comments = "keep_comments:main"
+no-comments = "no_comments:main"
 
 [build-system]
 requires = ["hatchling"]

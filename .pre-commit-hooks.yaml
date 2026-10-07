@@ -1,6 +1,6 @@
-- id: keep-comments
-  name: keep-comments
+- id: no-comments
+  name: no-comments
   description: "Reject new comments unless they end with `keep: <CODE>`."
-  entry: keep-comments
+  entry: no-comments
   language: python
   types: [text]
