@@ -24,7 +24,7 @@ passes, keep: DH00 */
       files: \.(py|jsx?|tsx?)$
 ```
 
-Without `files:`, the hook checks every supported language, YAML and shell included. The hook downloads each grammar the first time it is used and caches it.
+Without `files:`, the hook checks every supported language, YAML and shell included. On its first run, the hook downloads the grammars (about 25 MB) into its pre-commit environment, so a cache of `~/.cache/pre-commit` keeps them.
 
 ## Rules
 

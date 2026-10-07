@@ -2,11 +2,17 @@ import argparse
 import os
 import re
 import subprocess
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 from tree_sitter import Node, Tree
-from tree_sitter_language_pack import detect_language_from_path, get_parser
+from tree_sitter_language_pack import (
+    PackConfig,
+    configure,
+    detect_language_from_path,
+    get_parser,
+)
 
 DOCS = ("/**", "///", "//!")
 DIRECTIVES = (
@@ -125,6 +131,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("filenames", nargs="*")
     args = parser.parse_args(argv)
     allow = re.compile("|".join(f"(?:{pattern})" for pattern in args.allow))
+    # Grammars live and get cached with the pre-commit environment.
+    configure(PackConfig(cache_dir=sys.prefix))
     added = added_rows(args.filenames)
     failed = 0
     for filename in args.filenames:
