@@ -24,7 +24,9 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]
 python_files = ["tests.py"]
+addopts = "--cov=no_comments --cov-report=term-missing --cov-fail-under=100"
