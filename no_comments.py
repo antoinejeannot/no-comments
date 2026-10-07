@@ -4,13 +4,15 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
+from functools import cache
 from pathlib import Path
 
-from tree_sitter import Node, Tree
+from tree_sitter import Node, Query, QueryCursor, Tree
 from tree_sitter_language_pack import (
     PackConfig,
     configure,
     detect_language_from_path,
+    get_language,
     get_parser,
 )
 
@@ -24,18 +26,31 @@ KEEP = re.compile(r"^\W*keep:")
 HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 
-def comments(tree: Tree) -> list[Node]:
-    nodes = []
-    cursor = tree.walk()
-    while True:
-        # Grammars name them `comment`, `line_comment`, `block_comment`...
-        if "comment" in cursor.node.type:
-            nodes.append(cursor.node)
-        elif cursor.goto_first_child():
-            continue
-        while not cursor.goto_next_sibling():
-            if not cursor.goto_parent():
-                return nodes
+@cache
+def query(language: str) -> Query | None:
+    grammar = get_language(language)
+    kinds = {
+        grammar.node_kind_for_id(i)
+        for i in range(grammar.node_kind_count)
+        if grammar.node_kind_is_named(i) and grammar.node_kind_is_visible(i)
+    }
+    # Grammars name them `comment`, `line_comment`, `block_comment`...
+    patterns = [
+        f"({kind})"
+        for kind in sorted(kinds)
+        if kind.endswith("comment") and not kind.startswith("keyword")
+    ]
+    return Query(grammar, f"[{' '.join(patterns)}] @comment") if patterns else None
+
+
+def comments(tree: Tree, language: str) -> list[Node]:
+    if not (comment_query := query(language)):
+        return []
+    nodes = QueryCursor(comment_query).captures(tree.root_node).get("comment", [])
+    return sorted(
+        (node for node in nodes if "comment" not in node.parent.type),
+        key=lambda node: node.start_byte,
+    )
 
 
 def blocks(
@@ -64,7 +79,7 @@ def violations(
 ) -> list[list[Node]]:
     marker = re.compile(rf"keep: {re.escape(code)}\W*$")
     tree = get_parser(language).parse(source)
-    nodes = comments(tree)
+    nodes = comments(tree, language)
     code_start = next(
         (
             node.start_byte

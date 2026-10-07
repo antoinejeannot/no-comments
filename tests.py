@@ -54,6 +54,8 @@ def check(language: str, source: str) -> list[int]:
         ("python", "# why, keep: X\n# not keep: first\n", [1]),
         ("typescript", "/* keep: why\n */\n", []),
         ("sql", "-- keep: why\n", []),
+        ("sql", "COMMENT ON TABLE t IS 'x';\n", []),
+        ("csv", "a,b\n", []),
         ("rust", "/// Doc\n// x\n// y, keep: NC00\nfn f() {}\n", []),
         ("sql", "-- x\nSELECT 1; -- y, keep: NC00\n", [0]),
         ("html", "<!-- x, keep: NC00 -->\n<!-- y -->\n", [1]),

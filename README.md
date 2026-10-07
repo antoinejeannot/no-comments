@@ -18,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.7.0
+  rev: v0.7.1
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
