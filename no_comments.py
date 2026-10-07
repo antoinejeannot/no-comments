@@ -23,6 +23,7 @@ DIRECTIVES = (
     r"|deno-lint-ignore|(istanbul|c8|v8) ignore|nolint\b|go:|NOLINT|clang-format"
     r"|shellcheck\b|hadolint\b|yamllint\b|tfsec:|checkov:|trivy:|tflint-ignore"
     r"|rubocop:|noinspection\b|checkstyle:|-\*-|(en)?coding[:=]|frozen_string_literal:"
+    r"|frozen:|v\d+(\.\d+)*$"
 )
 PREFIX = re.compile(r"^(#|//|/\*)\s*")
 KEEP = re.compile(r"^\W*keep:")

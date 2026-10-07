@@ -36,7 +36,7 @@ For a fixed, verifiable install, pin a commit instead of a tag: `pre-commit auto
 - The hook checks only added or changed lines. Existing comments stay.
 - Consecutive full-line comments are one block. `keep:` goes at the start of its first line, or `keep: <CODE>` at the end of its last line.
 - A comment with only `keep: <CODE>`, for example `# keep: NC00`, before the first line of code skips the whole file.
-- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:`, and encoding or magic comments like `# -*- coding: utf-8 -*-` (see `DIRECTIVES` in `no_comments.py`).
+- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:`, encoding or magic comments like `# -*- coding: utf-8 -*-`, and version pins like `# v1.2.3` or `# frozen: v1.2.3` (see `DIRECTIVES` in `no_comments.py`).
 
 ## Allow more comments
 

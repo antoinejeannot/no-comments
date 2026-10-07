@@ -48,6 +48,7 @@ def check(language: str, source: str) -> list[int]:
         ),
         ("python", "# -*- coding: utf-8 -*-\nx = 1\n", []),
         ("ruby", "# frozen_string_literal: true\nx = 1\n", []),
+        ("yaml", "a: b@0123abc  # v1.2.3\nc: d  # frozen: v1\ne: f  # v2 is\n", [2]),
         ("python", "# ruff: noqa\nx = 1  # pylint: disable=C0103\n", []),
         (
             "javascript",
