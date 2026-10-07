@@ -34,9 +34,11 @@ HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 def query(language: str) -> Query | None:
     grammar = get_language(language)
     kinds = {
-        grammar.node_kind_for_id(i)
+        kind
         for i in range(grammar.node_kind_count)
-        if grammar.node_kind_is_named(i) and grammar.node_kind_is_visible(i)
+        if grammar.node_kind_is_named(i)
+        and grammar.node_kind_is_visible(i)
+        and (kind := grammar.node_kind_for_id(i)) is not None
     }
     # Grammars name them `comment`, `line_comment`, `block_comment`...
     patterns = [
@@ -52,9 +54,17 @@ def comments(tree: Tree, language: str) -> list[Node]:
         return []
     nodes = QueryCursor(comment_query).captures(tree.root_node).get("comment", [])
     return sorted(
-        (node for node in nodes if "comment" not in node.parent.type),
+        (
+            node
+            for node in nodes
+            if node.parent is None or "comment" not in node.parent.type
+        ),
         key=lambda node: node.start_byte,
     )
+
+
+def text(source: bytes, node: Node) -> str:
+    return source[node.start_byte : node.end_byte].decode(errors="replace")
 
 
 def blocks(
@@ -64,12 +74,12 @@ def blocks(
     result: list[list[Node]] = []
     previous = None
     for node in nodes:
-        text = node.text.decode(errors="replace")
-        if text.startswith(DOCS) or allow.match(PREFIX.sub("", text)):
+        comment = text(source, node)
+        if comment.startswith(DOCS) or allow.match(PREFIX.sub("", comment)):
             previous = None
             continue
         row, column = node.start_point
-        alone = "\n" not in text.rstrip() and not lines[row][:column].strip()
+        alone = "\n" not in comment.rstrip() and not lines[row][:column].strip()
         if alone and previous and row == previous.start_point.row + 1:
             result[-1].append(node)
         else:
@@ -94,7 +104,7 @@ def violations(
     )
     file_marker = re.compile(rf"^\W*keep: {re.escape(code)}\W*$")
     if any(
-        file_marker.match(node.text.decode(errors="replace"))
+        file_marker.match(text(source, node))
         for node in nodes
         if node.start_byte < code_start
     ):
@@ -105,8 +115,8 @@ def violations(
         if rows.intersection(
             range(block[0].start_point.row, block[-1].end_point.row + 1)
         )
-        and not KEEP.match(block[0].text.decode(errors="replace"))
-        and not marker.search(block[-1].text.decode(errors="replace"))
+        and not KEEP.match(text(source, block[0]))
+        and not marker.search(text(source, block[-1]))
     ]
 
 
@@ -128,8 +138,8 @@ def strip(source: bytes, nodes: list[Node]) -> bytes:
 
 
 def added_rows(filenames: list[str]) -> dict[str, set[int]]:
-    source = os.environ.get("PRE_COMMIT_FROM_REF")
-    target = os.environ.get("PRE_COMMIT_TO_REF")
+    source = os.environ.get("PRE_COMMIT_FROM_REF", "")
+    target = os.environ.get("PRE_COMMIT_TO_REF", "")
     revisions = [f"{source}...{target}"] if source and target else ["--cached"]
     diff = subprocess.run(
         [
@@ -183,7 +193,8 @@ def main(argv: list[str] | None = None) -> int:
     failed = 0
     for filename in args.filenames:
         language = detect_language_from_path(filename)
-        if language and (rows := added.get(filename)):
+        rows = added.get(filename, set())
+        if language is not None and rows:
             path = Path(filename)
             source = path.read_bytes()
             flagged = violations(source, language, rows, args.code, allow)

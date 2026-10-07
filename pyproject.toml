@@ -26,8 +26,15 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.10",
+    "ty>=0.0.85",
 ]
 
 [tool.pytest.ini_options]
 python_files = ["tests.py"]
 addopts = "--cov=no_comments --cov-report=term-missing --cov-fail-under=100"
+
+[tool.ruff.lint]
+extend-select = ["B", "C4", "I", "SIM", "UP", "RUF", "PT", "ANN"]
+
+[tool.ty.rules]
+all = "error"
