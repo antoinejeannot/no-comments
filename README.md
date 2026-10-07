@@ -1,9 +1,10 @@
 # no-comments
 
-A [pre-commit](https://pre-commit.com) hook that rejects new comments, unless they end with `keep: NC00`. It supports every language of [tree-sitter-language-pack](https://github.com/xberg-io/tree-sitter-language-pack) and skips other files.
+A [pre-commit](https://pre-commit.com) hook that rejects new comments, unless they start with `keep:` or end with `keep: NC00`. It supports every language of [tree-sitter-language-pack](https://github.com/xberg-io/tree-sitter-language-pack) and skips other files.
 
 ```python
 # This comment explains a tricky choice, keep: NC00
+# keep: this comment passes too
 # This comment fails
 ```
 
@@ -17,7 +18,7 @@ passes, keep: NC00 */
 
 ```yaml
 - repo: https://github.com/antoinejeannot/no-comments
-  rev: v0.6.1
+  rev: v0.7.0
   hooks:
     - id: no-comments
       files: \.(py|jsx?|tsx?)$
@@ -31,7 +32,7 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 - `args: [--message, "..."]` replaces the error message. `{code}` is replaced by the code.
 - `args: [--fix]` deletes the flagged comments. The hook still fails, so you can review the change.
 - The hook checks only added or changed lines. Existing comments stay.
-- Consecutive full-line comments are one block. The marker goes on the last line.
+- Consecutive full-line comments are one block. `keep:` goes at the start of its first line, or `keep: <CODE>` at the end of its last line.
 - `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
 - Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed: shebang, `type:`, `noqa`, `pragma`, `fmt:`, `nosec`, `pyright:`, `mypy:`, `eslint`, `@ts-`, `/// <reference`, `prettier-ignore`. Add more with `--allow <regex>`.
 

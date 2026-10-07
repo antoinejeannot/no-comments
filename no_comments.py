@@ -20,6 +20,7 @@ DIRECTIVES = (
     r"|eslint|@ts-|/ <reference|prettier-ignore"
 )
 PREFIX = re.compile(r"^(#|//|/\*)\s*")
+KEEP = re.compile(r"^\W*keep:")
 HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 
@@ -85,6 +86,7 @@ def violations(
         if rows.intersection(
             range(block[0].start_point.row, block[-1].end_point.row + 1)
         )
+        and not KEEP.match(block[0].text.decode())
         and not marker.search(block[-1].text.decode())
     ]
 
@@ -144,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--code", default="NC00")
     parser.add_argument(
         "--message",
-        default="comment not allowed, end it with 'keep: {code}' to keep it",
+        default="comment not allowed, start it with 'keep:' or end it with 'keep: {code}'",
     )
     parser.add_argument("--fix", action="store_true", help="drop flagged comments")
     parser.add_argument(
