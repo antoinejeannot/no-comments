@@ -63,7 +63,7 @@ def blocks(
     result: list[list[Node]] = []
     previous = None
     for node in nodes:
-        text = node.text.decode()
+        text = node.text.decode(errors="replace")
         if text.startswith(DOCS) or allow.match(PREFIX.sub("", text)):
             previous = None
             continue
@@ -93,7 +93,7 @@ def violations(
     )
     file_marker = re.compile(rf"keep-file: {re.escape(code)}\b")
     if any(
-        file_marker.search(node.text.decode())
+        file_marker.search(node.text.decode(errors="replace"))
         for node in nodes
         if node.start_byte < code_start
     ):
@@ -104,8 +104,8 @@ def violations(
         if rows.intersection(
             range(block[0].start_point.row, block[-1].end_point.row + 1)
         )
-        and not KEEP.match(block[0].text.decode())
-        and not marker.search(block[-1].text.decode())
+        and not KEEP.match(block[0].text.decode(errors="replace"))
+        and not marker.search(block[-1].text.decode(errors="replace"))
     ]
 
 
@@ -133,6 +133,8 @@ def added_rows(filenames: list[str]) -> dict[str, set[int]]:
     diff = subprocess.run(
         [
             "git",
+            "-c",
+            "core.quotePath=false",
             "diff",
             "-U0",
             "--no-color",
@@ -144,6 +146,7 @@ def added_rows(filenames: list[str]) -> dict[str, set[int]]:
         ],
         capture_output=True,
         text=True,
+        errors="replace",
         check=True,
     ).stdout
     added: dict[str, set[int]] = defaultdict(set)

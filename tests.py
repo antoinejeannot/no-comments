@@ -74,6 +74,16 @@ def test_violations(language: str, source: str, expected: list[int]) -> None:
     assert check(language, source) == expected
 
 
+def test_main_reads_any_path_and_encoding(tmp_path, monkeypatch, capsys) -> None:
+    monkeypatch.chdir(tmp_path)
+    subprocess.run(["git", "init", "-q"], check=True)
+    (tmp_path / "café.py").write_bytes(b"# caf\xe9\nx = 1\n")
+    subprocess.run(["git", "add", "."], check=True)
+
+    assert main(["café.py"]) == 1
+    assert capsys.readouterr().out.startswith("café.py:1: ")
+
+
 def test_main_checks_only_staged_lines(tmp_path, monkeypatch, capsys) -> None:
     monkeypatch.chdir(tmp_path)
     git = ["git", "-c", "user.name=t", "-c", "user.email=t@t"]
