@@ -9,19 +9,28 @@ on:
   pull_request:
 
 jobs:
+  approve:
+    if: github.actor != 'antoinejeannot'
+    runs-on: ubuntu-latest
+    environment: approval
+    steps:
+      - run: echo "Approved by a reviewer of the approval environment."
+
   lint:
+    needs: approve
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 2
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
-      - run: uv run --locked ruff check .
-      - run: uv run --locked ruff format --check .
-      - run: uv run --locked ty check
-      - if: github.event_name == 'pull_request'
-        uses: ./
+      - run: uv run --locked pre-commit run --show-diff-on-failure --color=always --from-ref HEAD^1 --to-ref HEAD
 
   test:
+    needs: approve
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
