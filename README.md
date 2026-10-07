@@ -34,7 +34,18 @@ Without `files:`, the hook checks every supported language, YAML and shell inclu
 - The hook checks only added or changed lines. Existing comments stay.
 - Consecutive full-line comments are one block. `keep:` goes at the start of its first line, or `keep: <CODE>` at the end of its last line.
 - `keep-file: <CODE>` in a comment before the first line of code skips the whole file.
-- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:` (see `DIRECTIVES` in `no_comments.py`). Add more with `--allow <regex>`, for example `args: [--allow, "TODO|FIXME"]`.
+- Docstrings, doc comments (`/** */`, `///`, `//!`) and tool directives are always allowed, for example `noqa`, `type:`, `ruff:`, `eslint`, `@ts-`, `istanbul ignore`, `nolint`, `shellcheck` or `rubocop:` (see `DIRECTIVES` in `no_comments.py`).
+
+## Allow more comments
+
+`--allow <regex>` adds a pattern to the allowlist. The pattern must match the start of the comment text, after `#`, `//` or `/*`. Use it for TODO, FIXME or other tool directives:
+
+```yaml
+    - id: no-comments
+      args: [--allow, "TODO|FIXME"]
+```
+
+`# TODO: retry later` and `// FIXME: race` pass, but `# a TODO later` fails. An allowed comment ends its block, so the next comment line needs its own marker.
 
 ## Diff range
 
